@@ -13,12 +13,14 @@ extern crate serde;
 #[macro_use] extern crate serde_json;
 extern crate simple_logger;
 extern crate walkdir;
+extern crate humantime;
 
 use std::env;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::mpsc::SyncSender;
 use std::sync::Mutex;
+use std::time::Duration;
 
 mod index_sync;
 mod crates;
@@ -50,7 +52,7 @@ pub struct Config {
     index: String,
     extern_url: String,
     port: u16,
-    refresh_rate: u64,
+    refresh_interval: Duration,
     threads: u32,
     log_level: log::LogLevel,
 }
@@ -110,7 +112,7 @@ impl Config {
                 .short("r")
                 .required(false)
                 .takes_value(true)
-                .help("Refresh rate for the git index (Default: 600)"))
+                .help("Refresh interval for the git index (Default: 10 minutes)"))
             .arg(Arg::with_name("prefetch")
                 .short("f")
                 .takes_value(true)
@@ -155,9 +157,11 @@ impl Config {
             extern_url: matches.value_of("extern-url")
                 .map(Into::into)
                 .unwrap_or(format!("http://localhost:{}", port)),
-            refresh_rate: u64::from_str(matches.value_of("refresh")
-                    .unwrap_or("600"))
-                .unwrap_or(600),
+            refresh_interval: matches.value_of("refresh")
+                .unwrap_or("10 minutes")
+                .parse::<humantime::Duration>()
+                .expect("parse refresh interval")
+                .into(),
             threads: u32::from_str(matches.value_of("threads")
                     .unwrap_or("16"))
                 .unwrap_or(16),
