@@ -48,6 +48,7 @@ pub struct Config {
     git_index_path: String,
     upstream: String,
     index: String,
+    extern_url: String,
     port: u16,
     refresh_rate: u64,
     threads: u32,
@@ -99,6 +100,12 @@ impl Config {
                 .required(false)
                 .takes_value(true)
                 .help("Port to listen on (Default: 8080)"))
+            .arg(Arg::with_name("extern-url")
+                .long("eurl")
+                .short("e")
+                .required(false)
+                .takes_value(true)
+                .help("Externally reachable URL (Default: http://localhost:8080)"))
             .arg(Arg::with_name("refresh")
                 .short("r")
                 .required(false)
@@ -129,6 +136,9 @@ impl Config {
         crate_path.push_str("/crates");
         let mut git_index: String = index_path.clone();
         git_index.push_str("/index");
+        let port = u16::from_str(matches.value_of("port")
+                    .unwrap_or("8080"))
+                .unwrap_or(8080);
         Config {
             all: matches.is_present("all"),
             prefetch_path: matches.value_of("prefetch").map(|r| r.to_string()),
@@ -141,9 +151,10 @@ impl Config {
             index: matches.value_of("git")
                 .unwrap_or("https://github.com/rust-lang/crates.io-index.git")
                 .into(),
-            port: u16::from_str(matches.value_of("port")
-                    .unwrap_or("8080"))
-                .unwrap_or(8080),
+            port: port,
+            extern_url: matches.value_of("extern-url")
+                .map(Into::into)
+                .unwrap_or(format!("http://localhost:{}", port)),
             refresh_rate: u64::from_str(matches.value_of("refresh")
                     .unwrap_or("600"))
                 .unwrap_or(600),
