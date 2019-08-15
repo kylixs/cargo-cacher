@@ -3,7 +3,7 @@
 PORT="7071"
 HOST="crates.mirror.com"
 EXTERN_URL="$HOST:$PORT"
-CRATE_OPS="-u http://localhost/api/v1/crates/"
+CRATE_OPS="-u http://127.0.0.1/api/v1/crates/"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
